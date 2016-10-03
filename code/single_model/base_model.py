@@ -10,6 +10,7 @@ from sklearn.metrics import make_scorer, mean_squared_error
 from sklearn.kernel_ridge import KernelRidge
 from sklearn.svm import SVR
 from sklearn.neighbors import KNeighborsRegressor
+from scipy.stats import skew
  
 def mean_squared_error_(ground_truth, predictions):
     return mean_squared_error(ground_truth, predictions) ** 0.5
@@ -20,47 +21,40 @@ def create_submission(prediction,score):
     sub_file = 'submission_'+str(score)+'_'+str(now.strftime("%Y-%m-%d-%H-%M"))+'.csv'
     print ('Creating submission: ', sub_file)
     pd.DataFrame({'Id': test['Id'].values, 'SalePrice': prediction}).to_csv(sub_file, index=False)
-    
+
 def data_preprocess(train,test):
-    tables = [train,test]
-    print ("Delete features with high number of missing values...")
-    total_missing = train.isnull().sum()
-    to_delete = total_missing[total_missing>(train.shape[0]/3.)]
-    for table in tables:
-        table.drop(list(to_delete.index),axis=1,inplace=True)
-
-    numerical_features = test.select_dtypes(include=["float","int","bool"]).columns.values
-    categorical_features = train.select_dtypes(include=["object"]).columns.values
-    print ("Filling all Nan...")
-    for table in tables:
-        for feature in numerical_features:
-            table[feature].fillna(table[feature].median(),inplace=True)
-        for feature in categorical_features:
-            table[feature].fillna(table[feature].value_counts().idxmax(),inplace=True)
-
-    print ("Handling categorical features...")
-    for feature in categorical_features:
-        le = preprocessing.LabelEncoder()
-        le.fit(train[feature])
-        for table in tables: 
-            table[feature]=le.transform(table[feature])
-  
-    print ("Get features...")
-    features = list(set(list(train.columns))&set(test.columns))
-    features.remove('Id')
+#    outlier_idx = [185, 318, 523, 691, 898, 1182]
+#    outlier_idx = [185, 261, 318, 349, 523, 581, 688, 691, 774, 798, 875, 898, 1182, 1256, 1359]
+#    outlier_idx = [66,167,185, 224,261, 318, 349, 523, 581,588, 688, 691, 774, 798, 875, 898,987, 1169,1182, 1256,1298,1324,1359,1442]
+    outlier_idx = [4,11,13,20,46,66,70,167,178,185,199, 224,261, 309,313,318, 349,412,423,440,454,477,478, 523,540, 581,588,595,654,688, 691, 774, 798, 875, 898,926,970,987,1027,1109, 1169,1182,1239, 1256,1298,1324,1353,1359,1405,1442,1447]
+    train.drop(train.index[outlier_idx],inplace=True)
+    all_data = pd.concat((train.loc[:,'MSSubClass':'SaleCondition'],
+                          test.loc[:,'MSSubClass':'SaleCondition']))
     
-    print ("The size of the train set:",train.shape)
-    print ("The size of the test set:",test.shape)
-    
-    return train,test,features
+    to_delete = ['Alley','FireplaceQu','PoolQC','Fence','MiscFeature']
+    all_data = all_data.drop(to_delete,axis=1)
 
+    train["SalePrice"] = np.log1p(train["SalePrice"])
+    #log transform skewed numeric features
+    numeric_feats = all_data.dtypes[all_data.dtypes != "object"].index
+    skewed_feats = train[numeric_feats].apply(lambda x: skew(x.dropna())) #compute skewness
+    skewed_feats = skewed_feats[skewed_feats > 0.75]
+    skewed_feats = skewed_feats.index
+    all_data[skewed_feats] = np.log1p(all_data[skewed_feats])
+    all_data = pd.get_dummies(all_data)
+    all_data = all_data.fillna(all_data.mean())
+    X_train = all_data[:train.shape[0]]
+    X_test = all_data[train.shape[0]:]
+    y = train.SalePrice
 
-def model_random_forecast(train,test,features):
+    return X_train,X_test,y
     
-    X_train = train[features]
-    y_train = np.log(train['SalePrice'])
+def model_random_forecast(Xtrain,Xtest,ytrain):
+    
+    X_train = Xtrain
+    y_train = ytrain
     rfr = RandomForestRegressor(n_jobs=1, random_state=0)
-    param_grid = {'n_estimators': [500], 'max_features': [10, 12, 14]}
+    param_grid = {}#'n_estimators': [500], 'max_features': [10,15,20,25], 'max_depth':[3,5,7,9,11]}
     model = GridSearchCV(estimator=rfr, param_grid=param_grid, n_jobs=1, cv=10, scoring=RMSE)
     model.fit(X_train, y_train)
     print('Random forecast regression...')
@@ -69,16 +63,15 @@ def model_random_forecast(train,test,features):
     print('Best CV Score:')
     print(-model.best_score_)
 
-    y_pred = model.predict(test[features])
+    y_pred = model.predict(Xtest)
     return y_pred, -model.best_score_
 
 
-# In[24]:
 
-def model_gradient_boosting_tree(train,test,features):
+def model_gradient_boosting_tree(Xtrain,Xtest,ytrain):
     
-    X_train = train[features]
-    y_train = np.log(train['SalePrice'])
+    X_train = Xtrain
+    y_train = ytrain 
     gbr = GradientBoostingRegressor(random_state=0)
     param_grid = {
         'n_estimators': [500],
@@ -95,13 +88,13 @@ def model_gradient_boosting_tree(train,test,features):
     print('Best CV Score:')
     print(-model.best_score_)
 
-    y_pred = model.predict(test[features])
+    y_pred = model.predict(Xtest)
     return y_pred, -model.best_score_
 
-def model_xgb_regression(train,test,features):
+def model_xgb_regression(Xtrain,Xtest,ytrain):
     
-    X_train = train[features]
-    y_train = np.log(train['SalePrice'])
+    X_train = Xtrain
+    y_train = ytrain 
     
     xgbreg = xgb.XGBRegressor(seed=0)
     param_grid = {
@@ -119,13 +112,13 @@ def model_xgb_regression(train,test,features):
     print('Best CV Score:')
     print(-model.best_score_)
 
-    y_pred = model.predict(test[features])
+    y_pred = model.predict(Xtest)
     return y_pred, -model.best_score_
 
-def model_extra_trees_regression(train,test,features):
+def model_extra_trees_regression(Xtrain,Xtest,ytrain):
     
-    X_train = train[features]
-    y_train = np.log(train['SalePrice'])
+    X_train = Xtrain
+    y_train = ytrain
     
     etr = ExtraTreesRegressor(n_jobs=1, random_state=0)
     param_grid = {'n_estimators': [500], 'max_features': [10,15,20]}
@@ -137,10 +130,10 @@ def model_extra_trees_regression(train,test,features):
     print('Best CV Score:')
     print(-model.best_score_)
 
-    y_pred = model.predict(test[features])
+    y_pred = model.predict(Xtest)
     return y_pred, -model.best_score_
 
-def model_kernel_ridge_regression(train,test,features):
+def model_kernel_ridge_regression(Xtrain,Xtest,ytrain):
     
     X_train = train[features]
     y_train = np.log(train['SalePrice'])
@@ -158,10 +151,10 @@ def model_kernel_ridge_regression(train,test,features):
     y_pred = model.predict(test[features])
     return y_pred, -model.best_score_
 
-def model_KNN_regression(train,test,features):
+def model_KNN_regression(Xtrain,Xtest,ytrain):
     
-    X_train = train[features]
-    y_train = np.log(train['SalePrice'])
+    X_train = Xtrain
+    y_train = ytrain 
     
     etr = KNeighborsRegressor()
     param_grid = {'n_neighbors': [3,5,8,10,15]}
@@ -173,26 +166,24 @@ def model_KNN_regression(train,test,features):
     print('Best CV Score:')
     print(-model.best_score_)
 
-    y_pred = model.predict(test[features])
+    y_pred = model.predict(Xtest)
     return y_pred, -model.best_score_
 
 
-# In[ ]:
-
 # read data, build model and do prediction
-train = pd.read_csv("../input/train.csv") # read train data
-test = pd.read_csv("../input/test.csv") # read test data
-train,test,features = data_preprocess(train,test)
+train = pd.read_csv("../../input/train.csv") # read train data
+test = pd.read_csv("../../input/test.csv") # read test data
+Xtrain,Xtest,ytrain = data_preprocess(train,test)
 
 
-#test_predict,score = model_random_forecast(train,test,features)
-#test_predict,score = model_xgb_regression(train,test,features)
-#test_predict,score = model_extra_trees_regression(train,test,features)
-#test_predict,score = model_gradient_boosting_tree(train,test,features)
-test_predict,score = model_KNN_regression(train,test,features)
+test_predict,score = model_random_forecast(Xtrain,Xtest,ytrain)
+#test_predict,score = model_xgb_regression(Xtrain,Xtest,ytrain)
+#test_predict,score = model_extra_trees_regression(Xtrain,Xtest,ytrain)
+#test_predict,score = model_gradient_boosting_tree(Xtrain,Xtest,ytrain)
+#test_predict,score = model_KNN_regression(Xtrain,Xtest,ytrain)
 
 
-#create_submission(np.exp(test_predict),score)
+create_submission(np.exp(test_predict),score)
 
 
 
