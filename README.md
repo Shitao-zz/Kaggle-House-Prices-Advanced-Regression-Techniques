@@ -30,10 +30,13 @@ Make sure to change the data directory and the parameters accordingly before the
 ### Submission
 
 <img src="/doc/fig/score_with_different_approaches.png">
+
 Submission score on Kaggle leaderboard with different approaches.
+
 ### FlowChart
 
 <img src="/doc/fig/flowchart.jpg" align="center" width="900px"/>
+
 Flow chart of the code.
 
 ### Documentation
