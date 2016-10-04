@@ -23,14 +23,19 @@ base model script is in `sing_model` folder. All input data are in `input` folde
 of the data can be found in [Kaggle](https://www.kaggle.com/c/house-prices-advanced-regression-techniques/data). 
 ### Run
 
-## Submission
+For a single model run, navigate to the `/code/single_model/` and run the following commands: ```python base_model.py```
+For a ensemble run, navigate to the `/code/ensemble/` and run the following commands: ```python ensemble.py```
+Make sure to change the data directory and the parameters accordingly before the model run.
+
+### Submission
 
 <img src="/doc/fig/score_with_different_approaches.png">
-
-## FlowChart
+Submission score on Kaggle leaderboard with different approaches.
+### FlowChart
 
 <img src="/doc/fig/flowchart.jpg" align="center" width="900px"/>
+Flow chart of the code.
 
-## Documentation
+### Documentation
 
-See `./doc/xxx.pdf` for documentation.
+See `./doc/xxx.pdf` for detailed documentation.(In progress)
