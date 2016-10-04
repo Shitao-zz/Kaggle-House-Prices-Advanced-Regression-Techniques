@@ -4,12 +4,11 @@ Competition on Kaggle](https://www.kaggle.com/c/house-prices-advanced-regression
 
 ## Submission
 
-<img src=“./doc/fig/score_with_different_approaches.jpg” alt="FlowChart" align="center" width="900px"/>
-
+<img src=“./doc/fig/score_with_different_approaches.jpg” align="center" width="900px"/>
 
 ## FlowChart
 
-<img src=“./doc/fig/flowchart.jpg” alt="FlowChart" align="center" width="900px"/>
+<img src=“./doc/fig/flowchart.jpg” align="center" width="900px"/>
 
 ## Documentation
 
