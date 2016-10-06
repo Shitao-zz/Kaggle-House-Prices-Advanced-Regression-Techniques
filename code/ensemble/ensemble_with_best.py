@@ -102,8 +102,8 @@ class ensemble(object):
         return y_pred, -grid.best_score_
 
 
-train = pd.read_csv("../input/train.csv") # read train data
-test = pd.read_csv("../input/test.csv") # read test data
+train = pd.read_csv("../../input/train.csv") # read train data
+test = pd.read_csv("../../input/test.csv") # read test data
 
 
 base_models = [

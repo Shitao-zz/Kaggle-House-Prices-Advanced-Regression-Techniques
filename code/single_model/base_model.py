@@ -23,9 +23,6 @@ def create_submission(prediction,score):
     pd.DataFrame({'Id': test['Id'].values, 'SalePrice': prediction}).to_csv(sub_file, index=False)
 
 def data_preprocess(train,test):
-#    outlier_idx = [185, 318, 523, 691, 898, 1182]
-#    outlier_idx = [185, 261, 318, 349, 523, 581, 688, 691, 774, 798, 875, 898, 1182, 1256, 1359]
-#    outlier_idx = [66,167,185, 224,261, 318, 349, 523, 581,588, 688, 691, 774, 798, 875, 898,987, 1169,1182, 1256,1298,1324,1359,1442]
     outlier_idx = [4,11,13,20,46,66,70,167,178,185,199, 224,261, 309,313,318, 349,412,423,440,454,477,478, 523,540, 581,588,595,654,688, 691, 774, 798, 875, 898,926,970,987,1027,1109, 1169,1182,1239, 1256,1298,1324,1353,1359,1405,1442,1447]
     train.drop(train.index[outlier_idx],inplace=True)
     all_data = pd.concat((train.loc[:,'MSSubClass':'SaleCondition'],
@@ -54,7 +51,7 @@ def model_random_forecast(Xtrain,Xtest,ytrain):
     X_train = Xtrain
     y_train = ytrain
     rfr = RandomForestRegressor(n_jobs=1, random_state=0)
-    param_grid = {}#'n_estimators': [500], 'max_features': [10,15,20,25], 'max_depth':[3,5,7,9,11]}
+    param_grid = {'n_estimators': [500], 'max_features': [10,15,20,25], 'max_depth':[3,5,7,9,11]}
     model = GridSearchCV(estimator=rfr, param_grid=param_grid, n_jobs=1, cv=10, scoring=RMSE)
     model.fit(X_train, y_train)
     print('Random forecast regression...')
@@ -65,8 +62,6 @@ def model_random_forecast(Xtrain,Xtest,ytrain):
 
     y_pred = model.predict(Xtest)
     return y_pred, -model.best_score_
-
-
 
 def model_gradient_boosting_tree(Xtrain,Xtest,ytrain):
     
@@ -133,42 +128,6 @@ def model_extra_trees_regression(Xtrain,Xtest,ytrain):
     y_pred = model.predict(Xtest)
     return y_pred, -model.best_score_
 
-def model_kernel_ridge_regression(Xtrain,Xtest,ytrain):
-    
-    X_train = train[features]
-    y_train = np.log(train['SalePrice'])
-    
-    etr = KernelRidge(kernel = 'linear')
-    param_grid = {'alpha': [1e-2,0.1,0.3,0.5,1,2,4], 'gamma': np.logspace(-3,2,6)}
-    model = GridSearchCV(estimator=etr, param_grid=param_grid, n_jobs=1, cv=10, scoring=RMSE)
-    model.fit(X_train, y_train)
-    print('Kernel ridge regression...')
-    print('Best Params:')
-    print(model.best_params_)
-    print('Best CV Score:')
-    print(-model.best_score_)
-
-    y_pred = model.predict(test[features])
-    return y_pred, -model.best_score_
-
-def model_KNN_regression(Xtrain,Xtest,ytrain):
-    
-    X_train = Xtrain
-    y_train = ytrain 
-    
-    etr = KNeighborsRegressor()
-    param_grid = {'n_neighbors': [3,5,8,10,15]}
-    model = GridSearchCV(estimator=etr, param_grid=param_grid, n_jobs=1, cv=10, scoring=RMSE)
-    model.fit(X_train, y_train)
-    print('KNN regression...')
-    print('Best Params:')
-    print(model.best_params_)
-    print('Best CV Score:')
-    print(-model.best_score_)
-
-    y_pred = model.predict(Xtest)
-    return y_pred, -model.best_score_
-
 
 # read data, build model and do prediction
 train = pd.read_csv("../../input/train.csv") # read train data
@@ -180,8 +139,6 @@ test_predict,score = model_random_forecast(Xtrain,Xtest,ytrain)
 #test_predict,score = model_xgb_regression(Xtrain,Xtest,ytrain)
 #test_predict,score = model_extra_trees_regression(Xtrain,Xtest,ytrain)
 #test_predict,score = model_gradient_boosting_tree(Xtrain,Xtest,ytrain)
-#test_predict,score = model_KNN_regression(Xtrain,Xtest,ytrain)
-
 
 create_submission(np.exp(test_predict),score)
 

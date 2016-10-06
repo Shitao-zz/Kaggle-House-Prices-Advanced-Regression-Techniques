@@ -102,8 +102,8 @@ class ensemble(object):
         return y_pred, -grid.best_score_
 
 
-train = pd.read_csv("../input/train.csv") # read train data
-test = pd.read_csv("../input/test.csv") # read test data
+train = pd.read_csv("../../input/train.csv") # read train data
+test = pd.read_csv("../../input/test.csv") # read test data
 
 
 base_models = [
@@ -120,7 +120,6 @@ base_models = [
             n_jobs=1, random_state=0, 
             n_estimators=500, max_features=15
         ),
-
         ExtraTreesRegressor(
             n_jobs=1, random_state=0, 
           n_estimators=500, max_features=20
