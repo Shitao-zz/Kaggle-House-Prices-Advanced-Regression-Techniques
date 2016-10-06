@@ -25,9 +25,6 @@ def create_submission(prediction,score):
 
 # train need to be test when do test prediction
 def data_preprocess(train,test):
-#    outlier_idx = [185, 318, 523, 691, 898, 1182]
-#    outlier_idx = [185, 261, 318, 349, 523, 581, 688, 691, 774, 798, 875, 898, 1182, 1256, 1359]
-#    outlier_idx = [66,167,185, 224,261, 318, 349, 523, 581,588, 688, 691, 774, 798, 875, 898,987, 1169,1182, 1256,1298,1324,1359,1442]
     outlier_idx = [4,11,13,20,46,66,70,167,178,185,199, 224,261, 309,313,318, 349,412,423,440,454,477,478, 523,540, 581,588,595,654,688, 691, 774, 798, 875, 898,926,970,987,1027,1109, 1169,1182,1239, 1256,1298,1324,1353,1359,1405,1442,1447]
     train.drop(train.index[outlier_idx],inplace=True)
     all_data = pd.concat((train.loc[:,'MSSubClass':'SaleCondition'],
@@ -114,49 +111,49 @@ base_models = [
             n_jobs=1, random_state=0,
             n_estimators=500, max_features=14
         ),
- #       RandomForestRegressor(
- #           n_jobs=1, random_state=0,
- #           n_estimators=500, max_features=20,
-#	    max_depth = 7
- #       ),
+        RandomForestRegressor(
+            n_jobs=1, random_state=0,
+            n_estimators=500, max_features=20,
+	    max_depth = 7
+        ),
         ExtraTreesRegressor(
             n_jobs=1, random_state=0, 
             n_estimators=500, max_features=15
         ),
 
-#        ExtraTreesRegressor(
- #           n_jobs=1, random_state=0, 
-#          n_estimators=500, max_features=20
-#        ),
+        ExtraTreesRegressor(
+            n_jobs=1, random_state=0, 
+          n_estimators=500, max_features=20
+        ),
         GradientBoostingRegressor(
             random_state=0, 
             n_estimators=500, max_features=10, max_depth=6,
             learning_rate=0.05, subsample=0.8
         ),
-#	GradientBoostingRegressor(
-#            random_state=0, 
-#            n_estimators=500, max_features=15, max_depth=6,
-#            learning_rate=0.05, subsample=0.8
-#        ),
+	GradientBoostingRegressor(
+            random_state=0, 
+            n_estimators=500, max_features=15, max_depth=6,
+            learning_rate=0.05, subsample=0.8
+        ),
         XGBRegressor(
             seed=0,
             n_estimators=500, max_depth=10,
             learning_rate=0.05, subsample=0.8, colsample_bytree=0.75
         ),
  
-#        XGBRegressor(
-#            seed=0,
-#            n_estimators=500, max_depth=7,
-#            learning_rate=0.05, subsample=0.8, colsample_bytree=0.75
-#        ),
-#	LassoCV(alphas = [1, 0.1, 0.001, 0.0005]),
-#	KNeighborsRegressor(n_neighbors = 5),
-#       	KNeighborsRegressor(n_neighbors = 10),
-#      	KNeighborsRegressor(n_neighbors = 15),
-#        KNeighborsRegressor(n_neighbors = 25),
-#	LassoLarsCV(),
-#	ElasticNet(),
-#	SVR()
+        XGBRegressor(
+            seed=0,
+            n_estimators=500, max_depth=7,
+            learning_rate=0.05, subsample=0.8, colsample_bytree=0.75
+        ),
+	LassoCV(alphas = [1, 0.1, 0.001, 0.0005]),
+	KNeighborsRegressor(n_neighbors = 5),
+       	KNeighborsRegressor(n_neighbors = 10),
+      	KNeighborsRegressor(n_neighbors = 15),
+        KNeighborsRegressor(n_neighbors = 25),
+	LassoLarsCV(),
+	ElasticNet(),
+	SVR()
     ]
 
 ensem = ensemble(
