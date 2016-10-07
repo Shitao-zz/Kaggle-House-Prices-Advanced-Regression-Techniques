@@ -64,10 +64,10 @@ class ensemble(object):
         T = test.values
         folds = list(KFold(len(y), n_folds = self.n_folds, shuffle = True, random_state = 0))
         S_train = np.zeros((X.shape[0],len(self.base_models)))
-        S_test = np.zeros((T.shape[0],len(self.base_models))) # X need to be T when do test prediction
+        S_test = np.zeros((T.shape[0],len(self.base_models))) 
         for i,reg in enumerate(base_models):
             print ("Fitting the base model...")
-            S_test_i = np.zeros((T.shape[0],len(folds))) # X need to be T when do test prediction
+            S_test_i = np.zeros((T.shape[0],len(folds))) 
             for j, (train_idx,test_idx) in enumerate(folds):
                 X_train = X[train_idx]
                 y_train = y[train_idx]
@@ -76,12 +76,12 @@ class ensemble(object):
                 y_pred = reg.predict(X_holdout)[:]
                 S_train[test_idx,i] = y_pred
                 S_test_i[:,j] = reg.predict(T)[:]
-            #    S_test_i[:,j] = reg.predict(X)[:]
             S_test[:,i] = S_test_i.mean(1)
-        
+         
         print ("Stacking base models...")
-        param_grid = {
-	     'alpha': [1e-3,5e-3,1e-2,5e-2,1e-1,0.2,0.3,0.4,0.5,0.8,1e0,3,5,7,1e1,2e1,5e1],
+        # tuning the stacker
+	param_grid = {
+	     'alpha': [1e-3,5e-3,1e-2,5e-2,1e-1,0.2,0.3,0.4,0.5,0.8,1e0,3,5,7,1e1],
 	}
 	grid = GridSearchCV(estimator=self.stacker, param_grid=param_grid, n_jobs=1, cv=5, scoring=RMSE)
         grid.fit(S_train, y)
@@ -101,11 +101,10 @@ class ensemble(object):
         y_pred = grid.predict(S_test)[:]
         return y_pred, -grid.best_score_
 
-
 train = pd.read_csv("../../input/train.csv") # read train data
 test = pd.read_csv("../../input/test.csv") # read test data
 
-
+# build a model library (can be improved)
 base_models = [
         RandomForestRegressor(
             n_jobs=1, random_state=0,
