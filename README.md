@@ -41,4 +41,4 @@ Flow chart of the code.
 
 ### Documentation
 
-See `./doc/xxx.pdf` for detailed documentation.(In progress)
+See `./doc/capstone_doc.pdf` for detailed project documentation.
