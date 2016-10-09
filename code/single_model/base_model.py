@@ -51,7 +51,7 @@ def model_random_forecast(Xtrain,Xtest,ytrain):
     X_train = Xtrain
     y_train = ytrain
     rfr = RandomForestRegressor(n_jobs=1, random_state=0)
-    param_grid = {'n_estimators': [500], 'max_features': [10,15,20,25], 'max_depth':[3,5,7,9,11]}
+    param_grid = {}#'n_estimators': [500], 'max_features': [10,15,20,25], 'max_depth':[3,5,7,9,11]}
     model = GridSearchCV(estimator=rfr, param_grid=param_grid, n_jobs=1, cv=10, scoring=RMSE)
     model.fit(X_train, y_train)
     print('Random forecast regression...')
@@ -69,11 +69,11 @@ def model_gradient_boosting_tree(Xtrain,Xtest,ytrain):
     y_train = ytrain 
     gbr = GradientBoostingRegressor(random_state=0)
     param_grid = {
-        'n_estimators': [500],
-        'max_features': [10,15],
-	'max_depth': [6,8,10],
-        'learning_rate': [0.05,0.1,0.15],
-        'subsample': [0.8]
+ #       'n_estimators': [500],
+ #       'max_features': [10,15],
+#	'max_depth': [6,8,10],
+ #       'learning_rate': [0.05,0.1,0.15],
+  #      'subsample': [0.8]
     }
     model = GridSearchCV(estimator=gbr, param_grid=param_grid, n_jobs=1, cv=10, scoring=RMSE)
     model.fit(X_train, y_train)
@@ -93,11 +93,11 @@ def model_xgb_regression(Xtrain,Xtest,ytrain):
     
     xgbreg = xgb.XGBRegressor(seed=0)
     param_grid = {
-        'n_estimators': [500],
-        'learning_rate': [ 0.05],
-        'max_depth': [ 7, 9, 11],
-        'subsample': [ 0.8],
-        'colsample_bytree': [0.75,0.8,0.85],
+#        'n_estimators': [500],
+#        'learning_rate': [ 0.05],
+#        'max_depth': [ 7, 9, 11],
+#        'subsample': [ 0.8],
+#        'colsample_bytree': [0.75,0.8,0.85],
     }
     model = GridSearchCV(estimator=xgbreg, param_grid=param_grid, n_jobs=1, cv=10, scoring=RMSE)
     model.fit(X_train, y_train)
@@ -116,7 +116,7 @@ def model_extra_trees_regression(Xtrain,Xtest,ytrain):
     y_train = ytrain
     
     etr = ExtraTreesRegressor(n_jobs=1, random_state=0)
-    param_grid = {'n_estimators': [500], 'max_features': [10,15,20]}
+    param_grid = {}#'n_estimators': [500], 'max_features': [10,15,20]}
     model = GridSearchCV(estimator=etr, param_grid=param_grid, n_jobs=1, cv=10, scoring=RMSE)
     model.fit(X_train, y_train)
     print('Extra trees regression...')
@@ -135,9 +135,9 @@ test = pd.read_csv("../../input/test.csv") # read test data
 Xtrain,Xtest,ytrain = data_preprocess(train,test)
 
 
-test_predict,score = model_random_forecast(Xtrain,Xtest,ytrain)
+#test_predict,score = model_random_forecast(Xtrain,Xtest,ytrain)
 #test_predict,score = model_xgb_regression(Xtrain,Xtest,ytrain)
-#test_predict,score = model_extra_trees_regression(Xtrain,Xtest,ytrain)
+test_predict,score = model_extra_trees_regression(Xtrain,Xtest,ytrain)
 #test_predict,score = model_gradient_boosting_tree(Xtrain,Xtest,ytrain)
 
 create_submission(np.exp(test_predict),score)
